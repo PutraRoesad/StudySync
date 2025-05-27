@@ -41,7 +41,7 @@ class _signupPageState extends State<signupPage> {
   final TextEditingController _confirmPasswordController = TextEditingController();
 
   Future<void> _signup() async {
-    final url = Uri.parse('http://127.0.0.1:8000/signup'); // Replace with your FastAPI endpoint
+    final url = Uri.parse('http://127.0.0.1:8000/signup');
 
     try {
       final response = await http.post(
