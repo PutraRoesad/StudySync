@@ -38,7 +38,7 @@ class _forgotPasswordPageState extends State<forgotPasswordPage> {
   final TextEditingController _confirmPasswordController = TextEditingController();
 
   Future<void> _forgotPassword() async {
-    final url = Uri.parse('http://127.0.0.1:8000/forgotpassword'); 
+    final url = Uri.parse('http://127.0.0.1:8000/forgotpassword');
 
     try {
       final response = await http.post(
@@ -51,23 +51,19 @@ class _forgotPasswordPageState extends State<forgotPasswordPage> {
       );
 
       if (response.statusCode == 200) {
-        // Signup successful
         print('Password Renewed');
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => LoginPage()),
         );
       } else {
-        // Signup failed
         print('Failed: ${response.body}');
-        // Show an error message to the user
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed. Please try again.')),
         );
       }
     } catch (e) {
       print('Error: $e');
-      // Show an error message to the user
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred. Please try again.')),
       );
@@ -85,7 +81,7 @@ class _forgotPasswordPageState extends State<forgotPasswordPage> {
           },
         ),
       ),
-      body: SingleChildScrollView( 
+      body: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(
@@ -144,7 +140,6 @@ class _forgotPasswordPageState extends State<forgotPasswordPage> {
                       ],
                     ),
                   ),
-                  
                   Container(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +180,6 @@ class _forgotPasswordPageState extends State<forgotPasswordPage> {
                       ],
                     ),
                   ),
-
                   Container(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,7 +228,7 @@ class _forgotPasswordPageState extends State<forgotPasswordPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           TextButton(
-                            onPressed: _forgotPassword, 
+                            onPressed: _forgotPassword,
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.only(top: 24, bottom: 24, left: 128, right: 128),
                               backgroundColor: Color(0x99FFB20F),
