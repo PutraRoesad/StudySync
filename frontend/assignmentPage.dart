@@ -81,6 +81,27 @@ class _AssignmentPageState extends State<AssignmentPage> {
     }
   }
 
+  Future<void> _deleteAssignment(int id) async {
+    try {
+      await Supabase.instance.client
+          .from('assignments')
+          .delete()
+          .eq('id', id);
+      _fetchAssignments();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Assignment deleted successfully!')),
+      );
+    } on PostgrestException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete assignment: ${e.message}')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
   String _formatDueDate(String? timestamp) {
     if (timestamp == null) return 'N/A';
     try {
@@ -170,7 +191,7 @@ class _AssignmentPageState extends State<AssignmentPage> {
                   onPressed: () async {
                     await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const addtaskPage()),
+                      MaterialPageRoute(builder: (context) => const AddTaskPage()),
                     );
                     _fetchAssignments();
                   },
@@ -208,62 +229,98 @@ class _AssignmentPageState extends State<AssignmentPage> {
                               final assignment = _assignments[index];
                               final collaboratorsText = _getCollaboratorsText(assignment['collaborators']);
 
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 16),
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
+                              return Dismissible(
+                                key: Key(assignment['id'].toString()),
+                                direction: DismissDirection.endToStart,
+                                background: Container(
+                                  color: Colors.red,
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                                  child: const Icon(Icons.delete, color: Colors.white),
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Image.asset('assets/image/book.png', width: 40, height: 40),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              assignment['subject'] ?? 'No Subject',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                                fontFamily: 'custom',
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              assignment['description'] ?? 'No Description',
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontFamily: 'custom',
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              'Due: ${_formatDueDate(assignment['due_date'])}',
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontFamily: 'custom',
-                                                color: Colors.blueGrey,
-                                              ),
-                                            ),
-                                            if (collaboratorsText.isNotEmpty)
+                                confirmDismiss: (direction) async {
+                                  return await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text("Confirm Deletion"),
+                                        content: Text(
+                                          "Are you sure you want to delete this assignment?",
+                                        ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(false),
+                                            child: const Text("Cancel"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(true),
+                                            child: const Text("Delete"),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                onDismissed: (direction) {
+                                  _deleteAssignment(assignment['id']);
+                                },
+                                child: Card(
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Image.asset('assets/image/book.png', width: 40, height: 40),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
                                               Text(
-                                                'Collaborators: $collaboratorsText',
+                                                assignment['subject'] ?? 'No Subject',
                                                 style: const TextStyle(
-                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
                                                   fontFamily: 'custom',
-                                                  color: Colors.purple,
                                                 ),
                                               ),
-                                          ],
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                assignment['description'] ?? 'No Description',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontFamily: 'custom',
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                'Due: ${_formatDueDate(assignment['due_date'])}',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontFamily: 'custom',
+                                                  color: Colors.blueGrey,
+                                                ),
+                                              ),
+                                              if (collaboratorsText.isNotEmpty)
+                                                Text(
+                                                  'Collaborators: $collaboratorsText',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontFamily: 'custom',
+                                                    color: Colors.purple,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );
