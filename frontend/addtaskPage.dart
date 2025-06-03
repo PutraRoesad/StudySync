@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:device_preview/device_preview.dart';
-import 'package:main/assignmentPage.dart';
+import 'package:main/assignmentPage.dart'; 
 
 void main() {
   runApp(
@@ -18,26 +18,35 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const addtaskPage(),
+      home: const AddTaskPage(), 
     );
   }
 }
 
-class addtaskPage extends StatefulWidget {
-  const addtaskPage({super.key});
+class AddTaskPage extends StatefulWidget {
+  const AddTaskPage({super.key});
 
   @override
-  _addtaskPageState createState() => _addtaskPageState();
+  _AddTaskPageState createState() => _AddTaskPageState();
 }
 
-class _addtaskPageState extends State<addtaskPage> {
+class _AddTaskPageState extends State<AddTaskPage> {
   final TextEditingController _subjectNameController = TextEditingController();
   final TextEditingController _descriptionNameController = TextEditingController();
   final TextEditingController _dueDateController = TextEditingController();
+  final TextEditingController _dueTimeController = TextEditingController(); 
   final TextEditingController _collaboratorController = TextEditingController();
 
   Future<void> _addAssignment() async {
     final url = Uri.parse('http://127.0.0.1:8000/assignments');
+
+    String fullDueDate = '';
+    if (_dueDateController.text.isNotEmpty && _dueTimeController.text.isNotEmpty) {
+      fullDueDate = '${_dueDateController.text}T${_dueTimeController.text}:00'; 
+    } else if (_dueDateController.text.isNotEmpty) {
+      fullDueDate = _dueDateController.text; 
+    }
+
 
     try {
       final response = await http.post(
@@ -46,7 +55,7 @@ class _addtaskPageState extends State<addtaskPage> {
         body: jsonEncode({
           'subject': _subjectNameController.text,
           'description': _descriptionNameController.text,
-          'due_date': _dueDateController.text,
+          'due_date': fullDueDate, 
           'collaborators': _collaboratorController.text,
         }),
       );
@@ -60,6 +69,7 @@ class _addtaskPageState extends State<addtaskPage> {
         _subjectNameController.clear();
         _descriptionNameController.clear();
         _dueDateController.clear();
+        _dueTimeController.clear(); 
         _collaboratorController.clear();
 
         if (mounted) {
@@ -98,6 +108,7 @@ class _addtaskPageState extends State<addtaskPage> {
     _subjectNameController.dispose();
     _descriptionNameController.dispose();
     _dueDateController.dispose();
+    _dueTimeController.dispose();
     _collaboratorController.dispose();
     super.dispose();
   }
@@ -206,6 +217,33 @@ class _addtaskPageState extends State<addtaskPage> {
                       ),
                       hintText: 'YYYY-MM-DD',
                       suffixIcon: const Icon(Icons.calendar_today),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Due Time', 
+                    style: TextStyle(fontSize: 16, fontFamily: 'custom'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _dueTimeController,
+                    keyboardType: TextInputType.datetime,
+                    readOnly: true,
+                    onTap: () async {
+                      TimeOfDay? pickedTime = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
+                      if (pickedTime != null) {
+                        _dueTimeController.text = '${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}';
+                      }
+                    },
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      hintText: 'HH:MM',
+                      suffixIcon: const Icon(Icons.access_time),
                     ),
                   ),
                   const SizedBox(height: 16),
